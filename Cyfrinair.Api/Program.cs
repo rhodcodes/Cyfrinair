@@ -1,27 +1,50 @@
 using Cyfrinair.Core;
 using Scalar.AspNetCore;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info.Title = "Cyfrinair.Cymru API";
+        document.Info.Version = "0.0.1-beta";
+        document.Info.Description =
+            "API ar gyfer creu cyfrineiriau cyfrinymadroddion Cymraeg a rhifau PIN. <br>" 
+            + "API for generating passwords, Welsh passphrases and PINs";
+        
+        return Task.CompletedTask;
+    });
+});
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference();
 }
 
+app.MapScalarApiReference("/docs",options =>
+{
+    options.WithTitle("API Cyfrinair.Cymru")
+        .WithTheme(ScalarTheme.Solarized)
+        .WithDefaultHttpClient(ScalarTarget.PowerShell, ScalarClient.RestMethod)
+        .DisableMcp()
+        .WithClassicLayout()
+        .ExpandAllModelSections()
+        .ExpandAllResponses().ExpandAllTags();
+    options.ShowSidebar = false;
+});
 app.UseHttpsRedirection();
 
-var password = app.MapGroup("/password");
-var passphrase = app.MapGroup("/passphrase");
-var pin = app.MapGroup("/pin");
+var password = app.MapGroup("/password").WithTags("api.cyfrinair.cymru");
+var passphrase = app.MapGroup("/passphrase").WithTags("api.cyfrinair.cymru");
+var pin = app.MapGroup("/pin").WithTags("api.cyfrinair.cymru");
 
-app.MapGet("/", () => Results.Redirect("/scalar"));
+app.MapGet("/", () => Results.Redirect("/docs"))
+    .ExcludeFromDescription()
+    .ExcludeFromApiReference();
 password.MapGet("/{quantity:int?}", GetPassword);
 passphrase.MapGet("{quantity:int?}", GetPassphrase);
 pin.MapGet("{quantity:int?}", GetPin);
