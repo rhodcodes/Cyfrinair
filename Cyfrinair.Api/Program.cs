@@ -1,0 +1,100 @@
+using Cyfrinair.Core;
+using Scalar.AspNetCore;
+using Microsoft.AspNetCore.Http.HttpResults;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
+
+app.UseHttpsRedirection();
+
+var password = app.MapGroup("/password");
+var passphrase = app.MapGroup("/passphrase");
+var pin = app.MapGroup("/pin");
+
+app.MapGet("/", () => Results.Redirect("/scalar"));
+password.MapGet("/{quantity:int?}", GetPassword);
+passphrase.MapGet("{quantity:int?}", GetPassphrase);
+pin.MapGet("{quantity:int?}", GetPin);
+
+
+app.Run();
+return;
+
+static IResult GetPassword(int quantity = 1,
+    int? length = 25,
+    string? includeDigits = "true",
+    string? includeSymbols = "true",
+    string? includeAmbiguousChars = "false")
+{
+    
+    if (quantity is < 1 or > 1000)
+    {
+        return TypedResults.BadRequest("Quantity must be between 5 and 1000.");
+    }
+
+    if (length is < 5 or > 1000)
+    {
+        return TypedResults.BadRequest("Length must be between 5 and 1000 characters.");
+    }
+
+    var options = new PasswordOptions()
+    {
+        Length = length ?? 25,
+        IncludeDigits = includeDigits == "true",
+        IncludeSymbols = includeSymbols == "true",
+        IncludeAmbiguousChars = includeAmbiguousChars == "true"
+    };
+    
+    var passwordGenerator = new Password(options);
+    var results = Enumerable.Range(0, quantity)
+        .Select(_ => passwordGenerator.Generate())
+        .ToArray();
+
+    return TypedResults.Ok(results);
+}
+
+static IResult GetPassphrase(int quantity = 1,
+    int words = 4,
+    string separator = "-",
+    string digitPlacement = "once",
+    string casing = "upper")
+{
+    if (quantity is < 1 or > 1000) return TypedResults.BadRequest("Quantity must be between 1 and 1000.");
+    if (words is < 1 or > 1000) return TypedResults.BadRequest("Words must be between 1 and 1000.");
+    
+    var options = new PassphraseOptions()
+    {
+        Words = words,
+        Separator = separator[0],
+        DigitPlacement = digitPlacement.ToDigitPlacementOption(),
+        Casing = casing.ToCasingOption()
+    };
+
+    var passphraseGenerator = new Passphrase(options);
+    var results = Enumerable.Range(0, quantity)
+        .Select(_ => passphraseGenerator.Generate())
+        .ToArray();
+    return TypedResults.Ok(results);
+}
+
+static IResult GetPin(int quantity = 1, int? length = 4)
+{
+    if (quantity is < 1 or > 1000) return TypedResults.BadRequest("Quantity must be between 1 and 1000");
+    if (length is < 1 or > 1000) return TypedResults.BadRequest("Length must be between 1 and 1000");
+    
+    var pinGenerator = new Pin();
+    var results = Enumerable.Range(0, quantity)
+        .Select(_ => pinGenerator.Generate(length ?? 4))
+        .ToArray();
+    return TypedResults.Ok(results);   
+}

@@ -1,0 +1,33 @@
+﻿# Geiriadur
+# Source: 
+# Licence:
+
+afal
+bara
+cath
+chwilio
+draig
+ddrws
+eglwys
+fawr
+ffrind
+gwyliau
+nghalon
+hwyl
+iach
+jam
+lawr
+llawer
+mawr
+neidr
+oer
+pwys
+phosib
+rwyf
+rhwydwaith
+sosej
+tegan
+threfi
+uwch
+wyl
+ysgol

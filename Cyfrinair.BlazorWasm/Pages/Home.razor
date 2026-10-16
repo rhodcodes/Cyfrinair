@@ -1,0 +1,239 @@
+﻿@page "/"
+@using Cyfrinair.Core
+@inject Password PasswordGenerator
+@inject Passphrase PassphraseGenerator
+@inject Pin PinGenerator
+@inject IClipboardCapability ClipboardCapability
+
+<PageTitle>Cyfrinair - Security Generator</PageTitle>
+
+<div class="container mt-5">
+    <h1>Cyfrinair.Cymru</h1>
+    <p>Cynhyrchydd cyfrineiriau, cyfrinymadroddion, a rhifau PIN.</p>
+
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button" role="tab">Cyfrineiriau</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="passphrase-tab" data-bs-toggle="tab" data-bs-target="#passphrase" type="button" role="tab">Cyfrinymadroddion</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pin-tab" data-bs-toggle="tab" data-bs-target="#pin" type="button" role="tab">Rhifau PIN</button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Passwords Tab -->
+        <div class="tab-pane fade show active" id="password" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Cyfrinair</h5>
+                    
+                    <div class="mb-3">
+                        <label for="passwordLength"
+                               class="form-label">Hyd</label>
+                        <input type="number"
+                               class="form-control"
+                               id="passwordLength"
+                               @bind="passwordLength"
+                               min="1"
+                               max="128"/>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input type="checkbox" class="form-check-input" id="includeDigits" @bind="includeDigits" />
+                        <label class="form-check-label" for="includeDigits">Cynnwys Rhifau?</label>
+                    </div>
+
+                    <div class="form-check mb-2">
+                        <input type="checkbox" class="form-check-input" id="includeSymbols" @bind="includeSymbols" />
+                        <label class="form-check-label" for="includeSymbols">Cynnwys Symbolau? (!@@#$%^&amp;*+)</label>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="includeAmbiguous" @bind="includeAmbiguous" />
+                        <label class="form-check-label" for="includeAmbiguous">Cynnwys Nodau Amwys? (ilLoO)</label>
+                    </div>
+
+                    <button class="btn btn-primary" @onclick="GeneratePassword">Creu Cyfrinair</button>
+
+                    @if (!string.IsNullOrEmpty(generatedPassword))
+                    {
+                        <div class="mt-3">
+                            <div class="alert alert-success" role="alert">
+                                <strong>Cyfrinair:</strong>
+                                <div class="mt-2">
+                                    <code>@generatedPassword</code>
+                                    <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => CopyToClipboard(generatedPassword)">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Passphrases Tab -->
+        <div class="tab-pane fade" id="passphrase" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Cyfrinymadroddion</h5>
+                    
+                    <div class="mb-3">
+                        <label for="wordCount" class="form-label">Sawl Gair? (4)</label>
+                        <input type="number" class="form-control" id="wordCount" @bind="wordCount" min="1" max="20" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="separator" class="form-label">Gwahanydd (-) </label>
+                        <!--input type="text" class="form-control" id="separator" @bind="separator" maxlength="1" /-->
+                        <select class="form-select"
+                                id="separator"
+                                @bind="separator">
+                            <option value="-">-</option>
+                            <option value=" "> </option>
+                            <option value="|">|</option>
+                            <option value="&"> & </option>
+                            <option value="*"> * </option>
+                            <option value="!"> ! </option>
+                            <option value="?"> ? </option>
+                            <option value="~"> ~ </option>
+                            <option value="^"> ^ </option>
+                            <option value="="> = </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="casing" class="form-label">Priflythrennau?</label>
+                        <select class="form-select" id="casing" @bind="selectedCasing">
+                            <option value="Upper">Llythrennau Mawr</option>
+                            <option value="Lower">Llythrennau Bach</option>
+                            <option value="Random">Cymysg</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="digitPlacement" class="form-label">Digit Placement</label>
+                        <select class="form-select" id="digitPlacement" @bind="selectedDigitPlacement">
+                            <option value="Once">Once</option>
+                            <option value="None">None</option>
+                            <option value="EveryWord">Every Word</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" @onclick="GeneratePassphrase">Generate Passphrase</button>
+
+                    @if (!string.IsNullOrEmpty(generatedPassphrase))
+                    {
+                        <div class="mt-3">
+                            <div class="alert alert-success" role="alert">
+                                <strong>Generated Passphrase:</strong>
+                                <div class="mt-2">
+                                    <code>@generatedPassphrase</code>
+                                    <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => CopyToClipboard(generatedPassphrase)">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- PIN Tab -->
+        <div class="tab-pane fade" id="pin" role="tabpanel">
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">PIN Number Generator</h5>
+                    
+                    <div class="mb-3">
+                        <label for="pinLength" class="form-label">PIN Length</label>
+                        <input type="number" class="form-control" id="pinLength" @bind="pinLength" min="1" max="32" />
+                    </div>
+
+                    <button class="btn btn-primary" @onclick="GeneratePin">Generate PIN</button>
+
+                    @if (!string.IsNullOrEmpty(generatedPin))
+                    {
+                        <div class="mt-3">
+                            <div class="alert alert-success" role="alert">
+                                <strong>Generated PIN:</strong>
+                                <div class="mt-2">
+                                    <code>@generatedPin</code>
+                                    <button class="btn btn-sm btn-outline-secondary ms-2" @onclick="() => CopyToClipboard(generatedPin)">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // Password options
+    private int passwordLength = 25;
+    private bool includeDigits = true;
+    private bool includeSymbols = false;
+    private bool includeAmbiguous = false;
+
+    // Passphrase options
+    private int wordCount = 4;
+    private string separator = "-";
+    private string selectedCasing = "Upper";
+    private string selectedDigitPlacement = "Once";
+
+    // PIN options
+    private int pinLength = 6;
+
+    // Generated results
+    private string generatedPassword = string.Empty;
+    private string generatedPassphrase = string.Empty;
+    private string generatedPin = string.Empty;
+
+    private void GeneratePassword()
+    {
+        var options = new PasswordOptions
+        {
+            Length = passwordLength,
+            IncludeDigits = includeDigits,
+            IncludeSymbols = includeSymbols,
+            IncludeAmbiguousChars = includeAmbiguous
+        };
+        var generator = new Password(options);
+        generatedPassword = generator.Generate();
+    }
+
+    private void GeneratePassphrase()
+    {
+        var casingOption = Enum.Parse<CasingOption>(selectedCasing);
+        var digitOption = Enum.Parse<DigitPlacementOption>(selectedDigitPlacement);
+        var options = new PassphraseOptions
+        {
+            Words = wordCount,
+            Separator = separator.Length > 0 ? separator[0] : '-',
+            Casing = casingOption,
+            DigitPlacement = digitOption
+        };
+        var generator = new Passphrase(options);
+        generatedPassphrase = generator.Generate();
+    }
+
+    private void GeneratePin()
+    {
+        generatedPin = PinGenerator.Generate(pinLength);
+    }
+
+    private async Task CopyToClipboard(string textToCopy)
+    {
+        if (!string.IsNullOrEmpty(textToCopy))
+        {
+            await using var clipboard = await ClipboardCapability.GetClipboardAsync();
+            await clipboard.WriteTextAsync(textToCopy);
+            
+        }
+    }
+}

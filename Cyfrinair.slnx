@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="Cyfrinair.Api/Cyfrinair.Api.csproj" />
+  <Project Path="Cyfrinair.BlazorWasm/Cyfrinair.BlazorWasm.csproj" />
+  <Project Path="Cyfrinair.Core.Tests/Cyfrinair.Core.Tests.csproj" />
+  <Project Path="Cyfrinair.Core/Cyfrinair.Core.csproj" />
+  <Project Path="Cyfrinair.Generators/Cyfrinair.Generators.csproj" />
+  <Project Path="Cyfrinair.WordlistProcessor/Cyfrinair.WordlistProcessor.csproj" />
+</Solution>
