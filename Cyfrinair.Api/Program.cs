@@ -52,9 +52,9 @@ return;
 
 static IResult GetPassword(int quantity = 1,
     int? length = 25,
-    string? includeDigits = "true",
-    string? includeSymbols = "true",
-    string? includeAmbiguousChars = "false")
+    bool includeDigits = true,
+    bool includeSymbols = true,
+    bool includeAmbiguousChars = false)
 {
     
     if (quantity is < 1 or > 1000)
@@ -70,9 +70,9 @@ static IResult GetPassword(int quantity = 1,
     var options = new PasswordOptions()
     {
         Length = length ?? 25,
-        IncludeDigits = includeDigits == "true",
-        IncludeSymbols = includeSymbols == "true",
-        IncludeAmbiguousChars = includeAmbiguousChars == "true"
+        IncludeDigits = includeDigits,
+        IncludeSymbols = includeSymbols,
+        IncludeAmbiguousChars = includeAmbiguousChars,
     };
     
     var passwordGenerator = new Password(options);
