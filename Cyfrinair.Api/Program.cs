@@ -1,7 +1,10 @@
 using Cyfrinair.Core;
 using Scalar.AspNetCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
@@ -86,8 +89,8 @@ static IResult GetPassword(int quantity = 1,
 static IResult GetPassphrase(int quantity = 1,
     int words = 4,
     string separator = "-",
-    string digitPlacement = "once",
-    string casing = "upper")
+    DigitPlacementOption digitPlacement = DigitPlacementOption.Once,
+    CasingOption casing = CasingOption.Upper)
 {
     if (quantity is < 1 or > 1000) return TypedResults.BadRequest("Quantity must be between 1 and 1000.");
     if (words is < 1 or > 1000) return TypedResults.BadRequest("Words must be between 1 and 1000.");
@@ -96,8 +99,8 @@ static IResult GetPassphrase(int quantity = 1,
     {
         Words = words,
         Separator = separator[0],
-        DigitPlacement = digitPlacement.ToDigitPlacementOption(),
-        Casing = casing.ToCasingOption()
+        DigitPlacement = digitPlacement,
+        Casing = casing
     };
 
     var passphraseGenerator = new Passphrase(options);
