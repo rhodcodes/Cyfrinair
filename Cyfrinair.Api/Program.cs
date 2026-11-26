@@ -94,6 +94,8 @@ static IResult GetPassphrase(int quantity = 1,
 {
     if (quantity is < 1 or > 1000) return TypedResults.BadRequest("Quantity must be between 1 and 1000.");
     if (words is < 1 or > 1000) return TypedResults.BadRequest("Words must be between 1 and 1000.");
+    if (!Enum.IsDefined(digitPlacement)) return TypedResults.BadRequest("Invalid digit placement.");
+    if (!Enum.IsDefined(casing)) return TypedResults.BadRequest("Invalid casing.");
     
     var options = new PassphraseOptions()
     {
